@@ -29,6 +29,7 @@ k=mu*ron*(1/(D^2)); # physical parameter, [1/C or 1/(A*s)]
 # fJ(x)=1-(2*x-1)^(2*p) - Joglekar window function
 # i=v/(ron*x+roff*(1-x)) - memristor current
 # n - index variable
+tic # evaluating simulation time with tic - toc
 for n=1; # initial condition for t=0
   x(n)=x0;
 end
@@ -36,6 +37,7 @@ for n=2:1:N+1; # recursion
   x(n)=x(n-1)+deltat*k*(v(n-1)/(ron*x(n-1)+roff*(1-x(n-1))))*...
   (1-(2*x(n-1)-1)^(2*p));
 end
+toc
 w=x*D; # length of the doped layer, [m]
 # memristor accumulated charge [C, or A*s]
 q=x.*(1/k);
