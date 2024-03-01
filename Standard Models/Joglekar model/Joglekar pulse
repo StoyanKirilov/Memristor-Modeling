@@ -1,5 +1,5 @@
 # Joglekar memristor model - analysis
-# sinusoidal mode
+# pulse mode
 clear # clear the memory
 clc
 # analysis in time domain
