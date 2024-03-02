@@ -1,5 +1,6 @@
 # GNU Octave model
-# Strukov-Williams memristor model - analysis
+# Strukov-Williams memristor model - analysis and numerical solution
+# using finite-differences method
 # sinusoidal mode
 clear # clear the memory
 clc
@@ -28,6 +29,7 @@ k=mu*ron*(1/(D^2)); # physical parameter, [1/C or 1/(A*s)]
 # state differential equation: dx/dt = k*i*f(x)
 # f(x)=x*(1-x) - Strukov-Williams window function
 # i=v/(ron*x+roff*(1-x)) - memristor current
+# numerical solution by finite-differences method
 # n - index variable
 for n=1; # initial condition for t=0
   x(n)=x0;
@@ -163,6 +165,7 @@ xlabel('Frequency (Hz)');
 ylabel('Amplitude');
 #
 # For citation:
+#
 # 1. L. Chua, "Memristor-The missing circuit element," in IEEE
 # Transactions on Circuit Theory, vol. 18, no. 5, pp. 507-519,
 # September 1971, doi: 10.1109/TCT.1971.1083337.
@@ -172,5 +175,10 @@ ylabel('Amplitude');
 #
 # 3. John W. Eaton, David Bateman, Søren Hauberg, Rik Wehbring (2023).
 # GNU Octave version 8.2.0 manual: a high-level interactive language for
-  # numerical computations.
-  # URL https://www.gnu.org/software/octave/doc/v8.2.0/
+  # numerical computations. URL https://www.gnu.org/software/octave/doc/v8.2.0/
+#
+# 4. Nagar, S.. “Introduction to Octave,” Apress, Berkeley, CA, 2018,
+# https://doi.org/10.1007/978-1-4842-3201-9_1, ISBN 978-1-4842-3201-9, pp. 209.
+#
+# 5. Chapra, S.C., Canale, R.P., “Numerical Methods for Engineers,” 
+# McGraw-Hill Education, USA, New York, 2016, ISBN 978–0–07–339792–4, pp. 970.
