@@ -1,8 +1,11 @@
 # GNU Octave model
-# Strukov-Williams memristor model - analysis
-# sinusoidal mode
+# Strukov-Williams memristor model - analysis and numerical solution
+# using finite-differences method
+# at pulse mode
+#
 clear # clear the memory
 clc
+#
 # analysis in time domain
 tmin=0; # starting time, [s]
 tmax=5; # stopping time, [s]
@@ -14,28 +17,36 @@ t=tmin:deltat:tmax; # time variable, [s]
 vm=1; # amplitude, [V]
 f=2; # frequency,[Hz]
 omega=2*pi*f; # angular frequency, [rad/s]
-psiv=-60; # initial phase, [Deg]
-pkg load signal # loading signal toolbox
-v=(vm*square(omega*t+deg2rad(psiv))); # voltage signal, [V]
+psiv=0; # initial phase, [Deg]
+pkg load signal
+v=vm*square(omega*t+deg2rad(psiv)); # voltage signal, [V]
 # memristor model parameters
 ron=100; # ON-state resistance, [Ohms]
 roff=16e3; # OFF-state resistance, [Ohms]
-x0=0.3; # state variable - initial value
+x0=0.5; # state variable - initial value
 mu=4e-14; # ionic mobility, [m2/(V.s)]
 D=10e-9; # memristor length, [m]
 k=mu*ron*(1/(D^2)); # physical parameter, [1/C or 1/(A*s)]
+#
+# forward or reverse biasing
+# eta=1 for forward biasing and eta=-1 for reverse biasing
+eta=1; # polarity parameter
 # simulation
 # state variable - expression according to the
 # state differential equation: dx/dt = k*i*f(x)
 # f(x)=x*(1-x) - Strukov-Williams window function
 # i=v/(ron*x+roff*(1-x)) - memristor current
+# numerical solution by finite-differences method
 # n - index variable
+tic
 for n=1; # initial condition for t=0
   x(n)=x0;
 end
 for n=2:1:N+1; # recursion
-  x(n)=x(n-1)+deltat*k*(v(n-1)/(ron*x(n-1)+roff*(1-x(n-1))))*(x(n-1)*(1-x(n-1)));
+  x(n)=x(n-1)+eta*deltat*k*(v(n-1)/(ron*x(n-1)+...
+  roff*(1-x(n-1))))*(x(n-1)*(1-x(n-1)));
 end
+toc
 w=x*D; # length of the doped layer, [m]
 # memristor accumulated charge [C, or A*s]
 q=x.*(1/k);
@@ -46,31 +57,53 @@ end
 for n=2:1:N+1;
   flux(n)=flux(n-1)+deltat*v(n-1);
 end
+# analytical solution of the state differential equation
+xan=exp((log(x0))-((ron/roff)*(log(1-x0)))+((k/roff)*(eta*flux)));
+qan=xan.*(1/k); # analytical electric charge
 # memristance, [Ohms]
-M=ron*x+roff*(1-x);
+M=ron*x+roff*(1-x); # numerical
+Man=ron*xan+roff*(1-xan); # analytical
 # memductance, [S]
-W=1./M;
+W=1./M; # numerical
+Wan=1./Man; # analytical
 # window function, proposed by Strukow and Williams
-fsw=x.*(1-x);
+fsw=x.*(1-x); # numerical
+fswan=xan.*(1-xan); # analytical
 # memristor current imem, [A]
-imem=v./M;
+imem=v./M; # numerical
+imeman=v./Man; # analytical
 # differential resistance rdiff=dv/di, [Ohm]
 for n=1:N;
   rdiff(n)=(v(n+1)-v(n))/(imem(n+1)-imem(n));
 end
+# analytical solution
+for n=1:N;
+  rdiffan(n)=(v(n+1)-v(n))/(imeman(n+1)-imeman(n));
+end
+#
 nprim=1:1:N; # reduced index variable
 tprim=tmin:deltat:(tmax-deltat); # reduced time vaiable, [s]
 xmaxprim=length(x)-1; # reduced state variable size
 xprim=x(:,1:xmaxprim); # reduced state variable
+xpriman=xan(:,1:xmaxprim); # reduced state variable - analytical
 for n=1:N; # time derivative of state variable
   dxdt(n)=(x(n+1)-x(n))/deltat;
+end
+# analytical
+for n=1:N; # time derivative of state variable
+  dxdtan(n)=(xan(n+1)-xan(n))/deltat;
 end
 # differential memductance wdiff=dimem/dv, [S]
 for n=1:N;
   wdiff(n)=(imem(n+1)-imem(n))/(v(n+1)-v(n));
 end
+# analytical
+for n=1:N;
+  wdiffan(n)=(imeman(n+1)-imeman(n))/(v(n+1)-v(n));
+end
 # memristor power dissipated, [W]
-p=v.*imem;
+p=v.*imem; # numerical
+pan=v.*imeman; # analytical
 # spectral analysis of memristor current
 fourier=fft(imem); # fast Fourier transformation
 mid=round(length(fourier)/2);
@@ -79,91 +112,182 @@ spectar=abs(half);
 spectar=spectar/mid;
 ff=linspace(0,1000,mid);
 #
+# analytical
+fourieran=fft(imeman); # fast Fourier transformation - analytical
+midan=round(length(fourieran)/2);
+halfan=fourieran(1:midan);
+spectaran=abs(halfan);
+spectaran=spectaran/midan;
+ffan=linspace(0,1000,midan);
+#
+# relative errors between numerical and analytical solutions [%]
+errx=((xan-x)./x)*100; # [%]
+errimem=((imeman-imem)./imem)*100; # [%]
+errp=((pan-p)./p)*100; # [%]
+errq=((qan-q)./q)*100; # [%]
+errfsw=((fswan-fsw)./fsw)*100; # [%]
+errM=((Man-M)./M)*100; # [%]
+errW=((Wan-W)./W)*100; # [%]
+#
 # figures
 figure(1)
-plot(t,v,t,x,'r')
+subplot(2,1,1)
+plot(t,v,t,x,'r',t,xan,'m')
 xlabel('Time variable, s')
 ylabel('Voltage, State')
 title('time diagrams of v and x')
 grid
-legend('Voltage','State variable')
+legend('Voltage','State variable x','State var xan')
+subplot(2,1,2)
+plot(t,errx)
+xlabel('Time, [s]')
+ylabel('Error of x')
+title('Error of x, [%]')
+grid
 figure(2)
-plot(t,v,t,imem*1e3,'r')
+subplot(2,1,1)
+plot(t,v,t,imem*1e3,'r',t,imeman*1e3,'m')
 xlabel('Time variable, s')
 ylabel('Voltage, Current')
 title('Time diagrams of v and imem')
 grid
-legend('Voltage','Current')
+legend('Voltage','Current','Current imeman')
+subplot(2,1,2)
+plot(t,errimem)
+xlabel('Time, [s]')
+ylabel('Error of imem')
+title('Error of imem, [%]')
+grid
 figure(3)
-plot(v,imem)
+plot(v,imem,v,imeman,'m')
 xlabel('Voltage, V')
 ylabel('Current, A')
 title('Current-voltage relationship')
 grid
+legend('Numerical i-v relation','Analytical i-v relation')
 figure(4)
-plot(flux,x)
+plot(flux,x,flux,xan)
 xlabel('Flux linkage, Wb')
 ylabel('State variable')
 title('State-flux relation')
 grid
+legend('Numerical state-flux relation','Analytical state-flux relation')
 figure(5)
-plot(flux,q)
+plot(flux,q,flux,qan,'m')
 xlabel('Flux linkage, Wb')
 ylabel('Memristor charge, C')
 title('Charge-flux relation')
 grid
+legend('numerical','analytical')
 figure(6)
-plot(tprim,rdiff)
+plot(tprim,rdiff,tprim,rdiffan,'m')
 xlabel('Time, s')
 ylabel('Differential resistance, Ohms')
 title('Time diagram of rdiff')
 grid
+legend('numerical','analytical')
 figure(6)
-plot(tprim,rdiff)
+plot(tprim,rdiff,tprim,rdiffan,'m')
 xlabel('Time, s')
 ylabel('Differential resistance, Ohms')
 title('Time diagram of rdiff')
 grid
+legend('numerical','analytical')
 figure(7)
-plot(tprim,wdiff)
+plot(tprim,wdiff,tprim,wdiffan,'m')
 xlabel('Time, s')
 ylabel('Differential memductance, Ohms')
 title('Time diagram of wdiff')
 grid
+legend('numerical','analytical')
 figure(8)
-plot(t,v,t,p*1e3,'r')
+subplot(2,1,1)
+plot(t,v,t,p*1e3,'r',t,pan*1e3,'m')
 xlabel('Time, s')
 ylabel('Voltage and Power, V, mW')
 title('Time diagram of v and p')
 grid
-legend('voltage','power')
+legend('voltage','numerical power','analytical power')
+subplot(2,1,2)
+plot(t,errp)
+xlabel('Time, [s]')
+ylabel('Error of power')
+title('Error of p, [%]')
+grid
 figure(9)
-plot(x,fsw)
+subplot(2,1,1)
+plot(x,fsw,x,fswan,'m')
 xlabel('State variable x')
 ylabel('S-W Window function')
 title('Strukov-Williams window')
 grid
+legend('Numerical window function','Analytical window function')
+subplot(2,1,2)
+plot(t,errfsw)
+xlabel('Time, [s]')
+ylabel('Error of fsw')
+title('Error of fsw, [%]')
+grid
 figure(10)
-plot(flux,M)
+subplot(2,1,1)
+plot(flux,M,flux,Man)
 xlabel('Flux linkage, Wb')
 ylabel('Memristance, Ohms')
 title('M-flux relation')
 grid
+legend('Numerical memristance','Analytical memristance')
+subplot(2,1,2)
+plot(t,errM)
+xlabel('Time, [s]')
+ylabel('Error of M')
+title('Error of M, [%]')
+grid
 figure(11)
-plot(flux,W)
+subplot(2,1,1)
+plot(flux,W,flux,Wan,'m')
 xlabel('Flux linkage, Wb')
 ylabel('Memductance, S')
 title('W-flux relation')
 grid
+legend('Numerical memductance','Analytical memductance')
+subplot(2,1,2)
+plot(t,errW)
+xlabel('Time, [s]')
+ylabel('Error of M')
+title('Error of M, [%]')
+grid
 figure(12)
-plot(xprim,dxdt)
+plot(xprim,dxdt,xprim,dxdtan,'m')
+xlabel('State variable')
+ylabel('Time derivative of x')
+title('Phase portrait')
+grid
+legend('numerical','analytical')
 figure(13)
 plot(ff,spectar);
 title('FFT Analysis');
 xlabel('Frequency (Hz)');
 ylabel('Amplitude');
+grid
+legend('numerical')
+figure(14)
+plot(t,x,t,xan,'r')
+xlabel('Time, [s]')
+ylabel('State variable')
+title('Time diagram of x')
+grid
+legend('Numerical solution','Analytical solution')
+#
+figure(15)
+plot(ffan,spectaran,'m');
+title('FFT Analysis');
+xlabel('Frequency (Hz)');
+ylabel('Amplitude');
+grid
+legend('analytical')
 #
 # For citation:
+#
 # 1. L. Chua, "Memristor-The missing circuit element," in IEEE
 # Transactions on Circuit Theory, vol. 18, no. 5, pp. 507-519,
 # September 1971, doi: 10.1109/TCT.1971.1083337.
@@ -171,7 +295,17 @@ ylabel('Amplitude');
 # 2. Strukov, D.B., Snider, G.S., Stewart, D.R. and Williams, R.S.,
 # 2008. The missing memristor found. Nature, vol. 453(7191), pp.80-83.
 #
+# 3. F. Corinto and A. Ascoli, "A Boundary Condition-Based Approach
+# to the Modeling of Memristor Nanostructures," in IEEE
+# Transactions on Circuits and Systems I: Regular Papers,
+# vol. 59, no. 11, pp. 2713-2726, Nov. 2012, doi: 10.1109/TCSI.2012.2190563.
+#
 # 3. John W. Eaton, David Bateman, Søren Hauberg, Rik Wehbring (2023).
 # GNU Octave version 8.2.0 manual: a high-level interactive language for
-  # numerical computations.
-  # URL https://www.gnu.org/software/octave/doc/v8.2.0/
+  # numerical computations. URL https://www.gnu.org/software/octave/doc/v8.2.0/
+#
+# 4. Nagar, S.. “Introduction to Octave,” Apress, Berkeley, CA, 2018,
+# https://doi.org/10.1007/978-1-4842-3201-9_1, ISBN 978-1-4842-3201-9, pp. 209.
+#
+# 5. Chapra, S.C., Canale, R.P., “Numerical Methods for Engineers,”
+# McGraw-Hill Education, USA, New York, 2016, ISBN 978–0–07–339792–4, pp. 970.
