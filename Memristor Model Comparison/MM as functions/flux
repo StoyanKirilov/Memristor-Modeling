@@ -1,0 +1,10 @@
+function psi=flux(v,t)
+  N=length(v);
+  deltat=(max(t)-min(t))/(N-1);
+for n=1
+  psi(n)=0
+end
+for n=2:1:N;
+  psi(n)=psi(n-1)+deltat*v(n-1);
+end
+end
