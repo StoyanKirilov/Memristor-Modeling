@@ -4,7 +4,7 @@
 # at pulse mode
 #
 clear # clear the memory
-clc
+clc # clear screen
 #
 # analysis in time domain
 tmin=0; # starting time, [s]
