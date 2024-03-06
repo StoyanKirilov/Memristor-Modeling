@@ -1,1 +1,23 @@
-# SW
+function [x,M,W,current]=SW(v,t,eta)
+  % v - memristor voltage
+  % t - time variable
+  % memristor parameters
+  ron=100;
+  roff=16e3;
+  x0=0.2;
+  mu=1e-14;
+  D=10e-9;
+  k=4*mu*ron*(1/D^2);
+  N=length(v);
+  deltat=(max(t)-min(t))/(N-1);
+  for n=1
+    x(n)=x0;
+  end
+  for n=2:1:N;
+    x(n)=x(n-1)+eta*deltat*(k*(v(n-1)/(ron*x(n-1)+...
+    roff*(1-x(n-1))))*(x(n-1)*(1-x(n-1))));
+  end
+  M=ron*x+roff*(1-x);
+  W=1./M;
+  current=v./(ron*x+roff*(1-x));
+end
