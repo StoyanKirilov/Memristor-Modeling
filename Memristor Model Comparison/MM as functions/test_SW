@@ -1,0 +1,28 @@
+%testing model SW
+clear
+clc
+t=0:1e-4:4;
+v=1.9*sin(1*pi*1.5*t+deg2rad(-60));
+eta=1; # polarity coefficient
+[x,m,w,ii]=SW(v,t,eta);
+psi=flux(v,t);
+figure(1)
+plot(v,ii)
+xlabel('Voltage')
+ylabel('Current')
+title('I-V relationship')
+grid
+figure(2)
+plot(t,v,t,x,'r')
+xlabel('Time, [s]')
+ylabel('Voltage and state')
+title('Time diagrams of v and x')
+grid
+legend('Voltage','State variable')
+figure(3)
+plot(psi,x)
+xlabel('Flux linkage')
+ylabel('State variable x')
+title('State-flux relation')
+grid
+#
