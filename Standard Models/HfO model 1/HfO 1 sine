@@ -1,1 +1,92 @@
-
+# standard hafnium dioxide memristor model K6
+# GNU Octave model
+# memristor model - numerical solution
+# using finite-differences method
+# at sinusoidal mode
+clear
+clc
+# signal parameters
+N=1e5; # Number of samples (points)
+tmin=0; # Starting time
+tmax=5; # Finishing time
+deltat=(tmax-tmin)/N; # time step
+t=tmin:deltat:tmax; # time variable
+vm=1.7; # amplitude of the voltage signal
+f=0.5; # frequency of the signal
+psiv=0; # initial phase of the signal
+v=vm*sin(2*pi*f*t+deg2rad(psiv)); # memristor voltage
+#
+# memristor parameters
+x0=0.4; # initial value of the state variable
+vtp=0.5; # positive voltage threshold
+vtn=-0.5; # negative voltage threshold;
+tswp=0.12; # ON to OFF switching time;
+tswn=0.1; # OFF to ON switching time;
+Ron=3e3;
+Roff=45e3;
+#
+# flux linkage
+for n=1;
+    flux(n)=0;
+end
+for n=2:1:N+1;
+    flux(n)=flux(n-1)+deltat*v(n-1);
+end
+#
+for n=1
+    x(n)=x0;
+end
+for n=2:1:N+1;
+    if v(n)>=vtp
+        x(n)=x(n-1)+deltat*(v(n)/vtp*tswp);
+    elseif v(n)<=vtn
+        x(n)=x(n-1)+deltat*(-(v(n)/vtn*tswn));
+    else x(n)=x(n-1);
+    end
+end
+imem=v./(Ron*x+Roff*(1-x));
+#
+# plotting the results
+figure(1)
+plot(t,v,t,x,'r')
+xlabel('Time variable, s')
+ylabel('Voltage, State')
+title('time diagrams of v and x')
+grid
+legend('Voltage','State variable x')
+figure(2)
+plot(t,v,t,imem*1e3,'r')
+xlabel('Time variable, s')
+ylabel('Voltage, Current')
+title('Time diagrams of v and imem')
+grid
+legend('Voltage','Current')
+figure(3)
+plot(v,imem)
+xlabel('Voltage, V')
+ylabel('Current, A')
+title('Current-voltage relationship')
+grid
+#
+figure(4)
+plot(flux,x)
+xlabel('Flux linkage, Wb')
+ylabel('State variable')
+title('State-flux relationship')
+grid
+#
+# Sources for citations:
+# 1. Amer, S.; Sayyaparaju, S.; Rose, G.S.; Beckmann, K.; Cady, N.C. A practical
+# hafnium-oxide memristor model suitable for circuit
+# design and simulation. In Proceedings of the 2017 IEEE
+# International Symposium on Circuits and Systems (ISCAS), Baltimore,
+# MD, USA, 28-31 May 2017; pp. 1-4.
+# 2. John W. Eaton, David Bateman, Søren Hauberg, Rik Wehbring (2023).
+# GNU Octave version 8.2.0 manual: a high-level interactive language for
+  # numerical computations. URL https://www.gnu.org/software/octave/doc/v8.2.0/
+#
+# 3. Nagar, S.. “Introduction to Octave,” Apress, Berkeley, CA, 2018,
+# https://doi.org/10.1007/978-1-4842-3201-9_1, ISBN 978-1-4842-3201-9, pp. 209.
+#
+# 4. Chapra, S.C., Canale, R.P., “Numerical Methods for Engineers,”
+# McGraw-Hill Education, USA, New York, 2016, ISBN 978–0–07–339792–4, pp. 970.
