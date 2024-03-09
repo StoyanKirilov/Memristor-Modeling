@@ -1,1 +1,120 @@
-# single resistor
+# GNU Octave modeling
+# single resistor - analysis at sine voltage
+# in the time domain
+clear
+clc
+tmin=0; # starting time
+tmax=10e-3; # stopping time
+# sampling in time domain
+N=1e5; # number of samples
+deltat=(tmax-tmin)/N; # time step, [s]
+t=tmin:deltat:tmax; # time variable, [s]
+vm=1; # voltage amplitude, [V]
+f=1e3; # frequency, [Hz]
+period=1/f; # period length, [s]
+nperiod=period/deltat;
+psiv=-60; # initial voltage phase, [deg]
+omega=2*pi*f; # angular frequency, [rad/s]
+v=vm*sin(omega*t+deg2rad(psiv)); # voltage signal, [V]
+r=100; # resistance, [Ohms]
+# current through the resistor - ir [A]=v/r
+# n is the index variable
+ir=v/r;
+# charge, [C or A*s]
+for n=1;
+  q(n)=0;
+end
+for n=2:1:N+1;
+  q(n)=q(n-1)+deltat*ir(n-1);
+end
+# flux linkage, [Wb]
+for n=1;
+  flux(n)=0;
+end
+for n=2:1:N;
+  flux(n)=flux(n-1)+deltat*v(n-1);
+end
+#
+# reduced variables
+Nprim=length(v)-1; # reduced number of samples
+tprim=t(:,1:Nprim); # reduced time variable
+Nsecond=length(v)-2; # reduced number of samples
+tsecond=t(:,1:Nsecond);
+vprim=v(:,1:Nprim); # reduced voltage
+qprim=q(:,1:Nprim); # reduced charge
+# power of the resistor
+p=v.*ir;
+# differential resistance
+for n=1:N-1;
+rdiff(n)=(vprim(n+1)-vprim(n))/(ir(n+1)-ir(n));
+end
+# static resistance
+rstat=v./ir;
+# effective values of voltage and current
+%veff=sqrt((1/period)*sum((v^2)*deltat));
+# plotting figures
+figure(1)
+plot(t,v,t,ir*1000,'r')
+xlabel('Time variable, s')
+ylabel('Current, A')
+title('Time diagrams of v and ir')
+grid
+legend('Voltage','current')
+figure(2)
+plot(t,q)
+xlabel('Time, s')
+ylabel('Charge, C')
+title('Time diagram of charge')
+grid
+figure(3)
+plot(tprim,vprim,tprim,flux*1e3,'r')
+xlabel('Time, s')
+ylabel('Voltage and flux')
+title('Time diagrams of v and flux')
+grid
+legend('voltage','flux')
+figure(4)
+plot(v,ir)
+xlabel('Voltage, V')
+ylabel('Current, A')
+title('Current-voltage relation')
+grid
+figure(5)
+plot(t,p*1000,t,v,'r',t,ir*10,'k')
+xlabel('Time variable, s')
+ylabel('Power, Voltage, Current')
+title('Time diagrams of P, V and ic')
+grid
+legend('Power','Voltage','Current')
+figure(6)
+plot(flux,qprim)
+xlabel('Flux linkage, Wb')
+ylabel('Charge, C')
+title('Charge-flux relation')
+grid
+figure(7)
+plot(tsecond,rdiff)
+xlabel('Time,[s]')
+ylabel('Differential resistance, [Ohm]')
+title('Time diagram of rdiff')
+grid
+figure(8)
+plot(t,rstat)
+xlabel('Time, [s]')
+ylabel('Static resistance, [Ohm]')
+title('Time diagram of rstat')
+grid
+#
+# Citations
+# 1. Sarma MS. Introduction to electrical engineering.
+# New York: Oxford University Press; 2001. ISBN 0-19-513604-7, pp. 869.
+# 2. Brandiski, K.G., Georgiev, Zh.D., Mladenov, V.M., Stancheva, R.D.,
+# Textbook on Theory of Electrical Engineering - Part I, KING Publishing House,
+# ISBN 954-9518-28-0, Sofia (In Bulgarian).
+# 3. John W. Eaton, David Bateman, Søren Hauberg, Rik Wehbring (2023).
+# GNU Octave version 8.2.0 manual: a high-level interactive language for
+# numerical computations.
+# URL https://www.gnu.org/software/octave/doc/v8.2.0/
+# 4. Nagar, S. (2018). Introduction to Octave. Apress, Berkeley,
+# CA. https://doi.org/10.1007/978-1-4842-3201-9_1,
+# ISBN 978-1-4842-3201-9, pp. 209.
