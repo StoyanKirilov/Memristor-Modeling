@@ -1,1 +1,121 @@
-# HfO2 sine wave
+# GNU Octave model
+# hafnium dioxide memristor standard model K7
+# using finite-differences method
+# at sinusoidal mode
+clear
+clc
+# memristor parameters
+roff=45e3;
+ron=3e3;
+tswp=0.1;
+tswn=0.1;
+deltar=roff-ron;
+clrs=(deltar)/tswp;
+chrs=(deltar)/tswn;
+vtp=0.5;
+vtn=-0.5;
+titahrs=1.2;
+titalrs=1.2;
+betahrs=1.3;
+betalrs=1.3;
+phrs=1.7;
+plrs=1.7;
+# simulation
+N=1e5;
+tmin=0;
+tmax=3;
+deltat=(tmax-tmin)/N;
+t=tmin:deltat:tmax;
+vm=1.1;
+f=4;
+x0=0.3;
+psiv=deg2rad(-60);
+v=vm*sin(2*pi*f*t+psiv);
+kk=0.0001;
+stpp1=0.5*(1+((v-vtp)./sqrt((v-vtp).^2+kk)));
+sw1=(sign(v-vtp)+1)/2;
+stpp2=0.5*(1+((vtn-v)./sqrt((vtn-v).^2+kk)));
+sw2=(sign(vtn-v)+1)/2;
+# flux linkage
+for n=1;
+    flux(n)=0;
+end
+for n=2:N+1;
+    flux(n)=flux(n-1)+deltat*v(n-1);
+end
+# state variable
+tic
+for n=1;
+  x(n)=x0;
+end
+for n=2:N+1;
+    if v(n)<=vtn
+    #fhrs(n)=1/(1+exp(((ron*x(n-1)+roff*(1-x(n-1)))-(titahrs*roff))/(betahrs*deltar)));
+    x(n)=x(n-1)+deltat*((-chrs/deltar)*(((v(n-1)-vtn)/vtn)^phrs)*...
+    (1/(1+exp(((ron*x(n-1)+roff*(1-x(n-1)))-(titahrs*roff))/(betahrs*deltar)))));
+    elseif v(n)>=vtp
+        #flrs(n)=1/(1+exp(((titalrs*ron)-(ron*x(n-1)+roff*(1-x(n-1))))/(betalrs*deltar)));
+        x(n)=x(n-1)+deltat*((clrs/deltar)*(((v(n-1)-vtp)/vtp)^plrs)*...
+        (1/(1+exp(((titalrs*ron)-(ron*x(n-1)+roff*(1-x(n-1))))/(betalrs*deltar)))));
+    else x(n)=x(n-1);
+    end
+end
+toc
+ii=v./(ron*x+roff*(1-x));
+figure(1)
+subplot(3,1,1)
+plot(v,sw1,v,stpp1,'r')
+xlabel('Voltage, [V]')
+ylabel('Step functions sw1 and stpp1')
+title('Step functions')
+grid
+legend('sw1','stpp1')
+subplot(3,1,2)
+plot(v,sw2,v,stpp2,'m')
+xlabel('Voltage, [V]')
+ylabel('Step functions sw2 and stpp2')
+title('Step functions')
+grid
+legend('sw2','stpp2')
+subplot(3,1,3)
+plot(t,v,t,x,'r')
+xlabel('Time, [s]')
+ylabel('Voltage, state')
+title('Time diagrams of v and x')
+grid
+legend('voltage','state variable')
+# the end
+figure(2)
+subplot(2,1,1)
+plot(v,ii)
+xlabel('Voltage, [V]')
+ylabel('Current, [A]')
+title('i-v relation')
+grid
+legend('current')
+subplot(2,1,2)
+plot(flux,x,'r')
+xlabel('Flux linkage, Wb')
+ylabel('State variable x')
+title('state-flux relation')
+grid
+#
+# For citation:
+# 1. Amer, S.; Sayyaparaju, S.; Rose, G.S.; Beckmann, K.; Cady, N.C. A
+# practical hafnium-oxide memristor model suitable for circuit
+# design and simulation. In Proceedings of the 2017 IEEE
+# International Symposium on Circuits and Systems (ISCAS), Baltimore,
+# MD, USA, 28-31 May 2017; pp. 1-4.
+#
+# 2. Strukov, D.B., Snider, G.S., Stewart, D.R. and Williams, R.S.,
+# 2008. The missing memristor found. Nature, vol. 453(7191), pp.80-83.
+#
+# 3. John W. Eaton, David Bateman, Søren Hauberg, Rik Wehbring (2023).
+# GNU Octave version 8.2.0 manual: a high-level interactive language for
+  # numerical computations. URL https://www.gnu.org/software/octave/doc/v8.2.0/
+#
+# 4. Nagar, S.. “Introduction to Octave,” Apress, Berkeley, CA, 2018,
+# https://doi.org/10.1007/978-1-4842-3201-9_1, ISBN 978-1-4842-3201-9, pp. 209.
+#
+# 5. Chapra, S.C., Canale, R.P., “Numerical Methods for Engineers,”
+# McGraw-Hill Education, USA, New York, 2016, ISBN 978–0–07–339792–4, pp. 970.
