@@ -1,0 +1,245 @@
+# GNU Octave model
+# A Modified and Improved Memristor Model "A3" for titanium dioxide memristor
+# with a voltage-dependent integer exponent
+# proposed by Prof. DSc. Valeri Mladenov
+# Simulation of a single memristor element made of titanium dioxide
+# using finite-differences method
+# at pulse mode
+#
+clear # clear the memory
+clc # clear screen
+#
+# analysis in time domain
+tmin=0; # starting time, [s]
+tmax=5; # stopping time, [s]
+# sampling in time domain
+N=1e5; # number of samples
+deltat=(tmax-tmin)/N; # time step, [s]
+t=tmin:deltat:tmax; # time variable, [s]
+# voltage signal generation
+vm=2.2; # amplitude, [V]
+f=3.5; # frequency,[Hz]
+omega=2*pi*f; # angular frequency, [rad/s]
+psiv=-90; # initial phase, [Deg]
+pkg load signal
+v=vm*square(omega*t+deg2rad(psiv)); # voltage signal, [V]
+stpp=(sign(-v)+1)/2;
+# memristor model parameters
+ron=100; # ON-state resistance, [Ohms]
+roff=16e3; # OFF-state resistance, [Ohms]
+x0=0.3; # state variable - initial value
+mu=4e-14; # ionic mobility, [m2/(V.s)]
+D=10e-9; # memristor length, [m]
+k=mu*ron*(1/(D^2)); # physical parameter, [1/C or 1/(A*s)]
+b=9.3; % a tuning parameter
+c=1.2; % a tuning parameter
+pp=round(b./(c+abs(v))); # positive integer exponent
+#
+# forward or reverse biasing
+# eta=1 for forward biasing and eta=-1 for reverse biasing
+eta=1; # polarity parameter
+# simulation
+# state variable - expression according to the
+# state differential equation: dx/dt = k*i*f(x)
+# f(x)=(1-(x-stpp)^(2*pp)) - modified window function
+# i=v/(ron*x+roff*(1-x)) - memristor current
+# numerical solution by finite-differences method
+# n - index variable
+tic
+for n=1; # initial condition for t=0
+  x(n)=x0;
+end
+for n=2:1:N+1; # recursion
+  x(n)=x(n-1)+eta*deltat*k*(v(n-1)/(ron*x(n-1)+roff*(1-x(n-1))))*...
+  (1-(x(n-1)-stpp(n-1))^(2*pp(n-1)));
+end
+toc
+w=x*D; # length of the doped layer, [m]
+# memristor accumulated charge [C, or A*s]
+q=x.*(1/k);
+# flux linkage, [Wb]
+for n=1;
+  flux(n)=0;
+end
+for n=2:1:N+1;
+  flux(n)=flux(n-1)+deltat*v(n-1);
+end
+# analytical solution of the state differential equation
+# not always possible in closed-form solution
+# memristance, [Ohms]
+M=ron*x+roff*(1-x); # numerical
+# memductance, [S]
+W=1./M; # numerical
+# window function, proposed by Strukow and Williams
+fM=(1-(x-stpp).^(2*pp)); # numerical
+# memristor current imem, [A]
+imem=v./M; # numerical
+# differential resistance rdiff=dv/di, [Ohm]
+for n=1:N;
+  rdiff(n)=(v(n+1)-v(n))/(imem(n+1)-imem(n));
+end
+#
+nprim=1:1:N; # reduced index variable
+tprim=tmin:deltat:(tmax-deltat); # reduced time vaiable, [s]
+xmaxprim=length(x)-1; # reduced state variable size
+xprim=x(:,1:xmaxprim); # reduced state variable
+for n=1:N; # time derivative of state variable
+  dxdt(n)=(x(n+1)-x(n))/deltat;
+end
+# differential memductance wdiff=dimem/dv, [S]
+for n=1:N;
+  wdiff(n)=(imem(n+1)-imem(n))/(v(n+1)-v(n));
+end
+# memristor power dissipated, [W]
+p=v.*imem; # numerical
+# spectral analysis of memristor current
+fourier=fft(imem); # fast Fourier transformation
+mid=round(length(fourier)/2);
+half=fourier(1:mid);
+spectar=abs(half);
+spectar=spectar/mid;
+ff=linspace(0,1000,mid);
+#
+# figures
+figure(1)
+plot(t,v,t,x,'r')
+xlabel('Time variable, s')
+ylabel('Voltage, State')
+title('time diagrams of v and x')
+grid
+legend('Voltage','State variable x')
+figure(2)
+plot(t,v,t,imem*1e3,'r')
+xlabel('Time variable, s')
+ylabel('Voltage, Current')
+title('Time diagrams of v and imem')
+grid
+legend('Voltage','Current')
+figure(3)
+plot(v,imem)
+xlabel('Voltage, V')
+ylabel('Current, A')
+title('Current-voltage relationship')
+grid
+legend('Numerical i-v relation')
+figure(4)
+plot(flux,x)
+xlabel('Flux linkage, Wb')
+ylabel('State variable')
+title('State-flux relation')
+grid
+legend('Numerical state-flux relation')
+figure(5)
+plot(flux,q)
+xlabel('Flux linkage, Wb')
+ylabel('Memristor charge, C')
+title('Charge-flux relation')
+grid
+legend('numerical')
+figure(6)
+plot(tprim,rdiff)
+xlabel('Time, s')
+ylabel('Differential resistance, Ohms')
+title('Time diagram of rdiff')
+grid
+legend('numerical')
+figure(7)
+plot(tprim,rdiff)
+xlabel('Time, s')
+ylabel('Differential resistance, Ohms')
+title('Time diagram of rdiff')
+grid
+legend('numerical')
+figure(8)
+plot(tprim,wdiff)
+xlabel('Time, s')
+ylabel('Differential memductance, Ohms')
+title('Time diagram of wdiff')
+grid
+legend('numerical')
+figure(9)
+plot(t,v,t,p*1e3,'r')
+xlabel('Time, s')
+ylabel('Voltage and Power, V, mW')
+title('Time diagram of v and p')
+grid
+legend('voltage','numerical power')
+figure(10)
+plot(x,fM)
+xlabel('State variable x')
+ylabel('Joglekar Window function')
+title('Joglekar window')
+grid
+legend('Numerical window function')
+figure(11)
+plot(flux,M)
+xlabel('Flux linkage, Wb')
+ylabel('Memristance, Ohms')
+title('M-flux relation')
+grid
+legend('Numerical memristance')
+figure(12)
+plot(flux,W)
+xlabel('Flux linkage, Wb')
+ylabel('Memductance, S')
+title('W-flux relation')
+grid
+legend('Numerical memductance')
+figure(13)
+plot(xprim,dxdt)
+xlabel('State variable')
+ylabel('Time derivative of x')
+title('Phase portrait')
+grid
+legend('numerical')
+figure(14)
+plot(ff,spectar);
+title('FFT Analysis');
+xlabel('Frequency (Hz)');
+ylabel('Amplitude');
+grid
+legend('numerical')
+figure(15)
+plot(t,x)
+xlabel('Time, [s]')
+ylabel('State variable')
+title('Time diagram of x')
+grid
+legend('Numerical solution')
+figure(16)
+plot(v,pp)
+xlabel('Voltage, [V]')
+ylabel('Integer exponent pp')
+title('Integer exp pp versus v')
+grid
+legend('numerical')
+#
+# For citation:
+#
+# 1. Mladenov, V.; Kirilov, S. Advanced Memristor Model with a Modified Biolek
+# Window and a Voltage-Dependent Variable Exponent, Informatyka, Automatyka,
+# Pomiary w Gospodar-ce i Ochronie Środowiska (IAPGOŚ) 2018, 8(2),
+# pp. 15–20, DOI:10.5604/01.3001.0012.0697,
+# https://e-iapgos.pl/resources/html/article/details?id= 173606.
+#
+# 2. Valeri Mladenov, Advanced Memristor Modeling - Memristor Circuits and Networks,
+# MDPI, ISBN 978-3-03897-103-0 (PDF), 2019, pp. 172.
+#
+# 3. Joglekar, Y.N. and Wolf, S.J., 2009. The elusive memristor:
+# properties of basic electrical circuits. European Journal
+# of physics, vol. 30, issue(4), p.661. DOI 10.1088/0143-0807/30/4/001
+#
+# 4. F. Corinto and A. Ascoli, "A Boundary Condition-Based Approach
+# to the Modeling of Memristor Nanostructures," in IEEE
+# Transactions on Circuits and Systems I: Regular Papers,
+# vol. 59, no. 11, pp. 2713-2726, Nov. 2012, doi: 10.1109/TCSI.2012.2190563.
+#
+# 5. John W. Eaton, David Bateman, Søren Hauberg, Rik Wehbring (2023).
+# GNU Octave version 8.2.0 manual: a high-level interactive language for
+  # numerical computations. URL https://www.gnu.org/software/octave/doc/v8.2.0/
+#
+# 6. Nagar, S.. “Introduction to Octave,” Apress, Berkeley, CA, 2018,
+# https://doi.org/10.1007/978-1-4842-3201-9_1, ISBN 978-1-4842-3201-9, pp. 209.
+#
+# 7. Chapra, S.C., Canale, R.P., “Numerical Methods for Engineers,”
+# McGraw-Hill Education, USA, New York, 2016, ISBN 978–0–07–339792–4, pp. 970.
