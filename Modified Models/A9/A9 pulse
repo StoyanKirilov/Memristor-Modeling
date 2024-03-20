@@ -1,0 +1,121 @@
+# tantalum oxide modified memristor model A9
+# proposed by Prof. DSc. Valeri Mladenov
+clear
+clc
+# voltage signal
+N=1e5;
+tmin=0;
+tmax=3;
+deltat=(tmax-tmin)/N;
+t=tmin:deltat:tmax;
+vm=0.2;
+f=3;
+omega=2*pi*f;
+psiv=0;
+pkg load signal
+v=vm*square(omega*t+deg2rad(psiv));
+ # constants and memristor parameters
+m=1.1;
+p=3;
+A=1e-10;
+B=1e-4;
+sigmap=4e-5;
+sigmaon=4.5e-1;
+sigmaoff=1.3e-2;
+xoff=4e-1;
+beta=500;
+xon=6e-2;
+Gm=2.5e-2;
+a=7.2e-6;
+b=4.7;
+x0=0.2; # initial state
+k=-1000;
+h=0.014;
+# step functions
+stpplus=(sign(v)+1)/2;
+stpminus=(sign(-v)+1)/2;
+splus=1./(1+exp(k*v));
+sminus=1./(1+exp(-k*v));
+# modulus functions
+abssv=v.*(splus-sminus);
+absv=abs(v);
+# flux linkage
+for n=1
+    flux(n)=0
+end
+for n=2:N+1
+    flux(n)=flux(n-1)+deltat*v(n-1);
+end
+# state variable and memristor current
+for n=1
+    x(n)=x0;
+    ii(n)=v(n)*(Gm*x(n)+(h*v(n)^2)*(1-x(n)));
+end
+for n=2:N+1;
+    x(n)=x(n-1)+deltat*((A*sinh(v(n-1)/sigmaoff)*exp(-(xoff^2)/(x(n-1)^2))*exp(1/(1+beta*ii(n-1)*v(n-1)))*sminus(n-1))+...
+        (B*sinh(v(n-1)/sigmaon)*exp(-(x(n-1)^2)/(xon^2))*exp((v(n-1)*ii(n-1))/sigmap)*splus(n-1)))*...
+        ((1/(1+m))*(1-((x(n-1)-sminus(n-1))^(2*p))+(m*(sin(pi*x(n-1)))^(2))));
+     ii(n)=v(n)*(Gm*x(n)+((h*v(n)^2))*(1-x(n)));
+end
+ # hpos=B*sinh(v/sigmaon).*exp(-(x.^2)/(xon^2)).*exp((v.*ii)/sigmap);
+figure(1)
+plot(t,x,t,v,'m')
+xlabel('Time, [s]')
+ylabel('State and voltage')
+title('Time diagrams of state and voltage')
+grid
+legend('state','voltage')
+#
+figure(2)
+plot(v,ii)
+xlabel('Voltage, V')
+ylabel('Current, A')
+title('Current-voltage relation')
+grid
+#
+figure(3)
+subplot(2,1,1)
+plot(v,stpplus,v,stpminus,'r')
+xlabel('Voltage, V')
+ylabel('Step plus fcn')
+title('step fcn')
+grid
+subplot(2,1,2)
+plot(v,splus,v,sminus,'r')
+xlabel('Voltage, V')
+ylabel('stp minus fcn')
+title('step fcn minus')
+#
+figure(4)
+plot(v,absv,v,abssv,'r')
+xlabel('Voltage, V')
+ylabel('abs v')
+title('modulus functions')
+grid
+legend('absv','abssv')
+#
+figure(5)
+plot(flux,x)
+xlabel('Flux linkage, Wb')
+ylabel('State variable x')
+title('State-flux relation')
+grid
+#
+# For citations:
+# 1. Mladenov, V, “A Modified Tantalum Oxide Memristor Model
+# for Neural Networks with Memristor-Based Synapses,” IEEE
+# Conf. Pr. MOCAST 2020, DOI:10.1109/MOCAST49295.2020.9200238, pp.1-4.
+#
+# 2. L. Chua, "Memristor-The missing circuit element," in IEEE
+# Transactions on Circuit Theory, vol. 18, no. 5, pp. 507-519,
+# September 1971, doi: 10.1109/TCT.1971.1083337.
+#
+# 3. John W. Eaton, David Bateman, Søren Hauberg, Rik Wehbring (2023).
+# GNU Octave version 8.2.0 manual: a high-level interactive language for
+  # numerical computations. URL https://www.gnu.org/software/octave/doc/v8.2.0/
+#
+# 4. Nagar, S.. “Introduction to Octave,” Apress, Berkeley, CA, 2018,
+# https://doi.org/10.1007/978-1-4842-3201-9_1, ISBN 978-1-4842-3201-9, pp. 209.
+#
+# 5. Chapra, S.C., Canale, R.P., “Numerical Methods for Engineers,”
+# McGraw-Hill Education, USA, New York, 2016, ISBN 978–0–07–339792–4, pp. 970.
