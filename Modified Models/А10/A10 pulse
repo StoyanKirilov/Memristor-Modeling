@@ -1,0 +1,144 @@
+# tantalum oxide modified memristor model A10
+# proposed by Prof. DSc. Valeri Mladenov and Assist. Prof. Dr. Stoyan Kirilov
+clear
+clc
+# voltage signal
+N=1e6;
+tmin=0;
+tmax=2;
+deltat=(tmax-tmin)/N;
+t=tmin:deltat:tmax;
+vm=0.2;
+f=3;
+omega=2*pi*f;
+psiv=0;
+pkg load signal
+v=vm*square(omega*t+deg2rad(psiv));
+# umain=square(2*pi*f.*t);
+# u=um*(square(2*pi*15*f.*t)+1)/2;
+# unew=umain.*u;
+# u=unew;
+# constants and memristor parameters
+m=3;
+p=3;
+A=1e-10;
+B=1e-4;
+sigmap=4e-5;
+sigmaon=4.5e-1;
+sigmaoff=1.3e-2;
+xoff=4e-1;
+beta=500;
+xon=6e-2;
+Gm=2.5e-2;
+a=7.2e-6;
+b=4.7;
+x0=0.15;
+k=-1000;
+h=0.014;
+# step functions
+stpplus=(sign(v)+1)/2;
+stpminus=(sign(-v)+1)/2;
+splus=1./(1+exp(k*v));
+sminus=1./(1+exp(-k*v));
+# modulus functions
+abssv=v.*(splus-sminus);
+absv=abs(v);
+# flux linkage
+for n=1
+    flux(n)=0;
+end
+for n=2:N+1
+    flux(n)=flux(n-1)+deltat*v(n-1);
+end
+# state variable and current
+tic
+for n=1
+    x(n)=x0;
+    #iM(n)=u(n)/(R4+(1/(Gm*x(n))));
+    #uM(n)=iM(n)*(1/((Gm*x(n)+(h*u(n)^2)*(1-x(n)))));
+    ii(n)=v(n)*(Gm*x(n)+(h*v(n)^2)*(1-x(n)));
+end
+for n=2:N+1;
+    %iM(n)=u(n-1)/(R4+(1/(Gm*x(n-1))));
+    %uM(n)=iM(n-1)*(1/((Gm*x(n-1)+(h*u(n-1)^2)*(1-x(n-1)))));
+    x(n)=x(n-1)+deltat*((A*sinh(v(n-1)/sigmaoff)*exp(-(xoff^2)/(x(n-1)^2))*exp(1/(1+beta*ii(n-1)*v(n-1)))*sminus(n-1))+...
+        (B*sinh(v(n-1)/sigmaon)*exp(-(x(n-1)^2)/(xon^2))*exp((v(n-1)*ii(n-1))/sigmap)*splus(n-1)))*...
+        ((1/(1+m))*(1-((x(n-1)-sminus(n-1))^(2*p))+(m*(sin(pi*x(n-1)))^(2))));
+     ii(n)=v(n-1)*(Gm*x(n)+((h*v(n)^2))*(1-x(n)));
+end
+toc
+%u=uM;
+%ii=iM;
+% memristance
+M=1./(Gm*x+(h*v.^2).*(1-x));
+#w=5*((R4/(R1+R4))-(R4./(M+R4)));
+#deltaw=diff(w);
+#deltau=diff(u);
+#
+figure(1)
+plot(t,x,t,v,'m')
+xlabel('Time, [s]')
+ylabel('State and voltage')
+title('Time diagrams of x and v')
+grid
+legend('state','voltage')
+figure(2)
+plot(v,ii)
+xlabel('Voltage, V')
+ylabel('Current, A')
+title('Current-voltage relation')
+grid
+figure(3)
+subplot(2,1,1)
+plot(v,stpplus,v,stpminus,'r')
+xlabel('Voltage, V')
+ylabel('step fcn')
+title('step fcn')
+grid
+legend('stpplus','stpminus')
+subplot(2,1,2)
+plot(v,splus,v,sminus,'r')
+xlabel('Voltage, V')
+ylabel('stp functions')
+title('stp functions')
+grid
+legend('splus','sminus')
+figure(4)
+plot(v,absv,v,abssv,'r')
+xlabel('Voltage, V')
+ylabel('modulus functions')
+title('MOdulus functions')
+grid
+legend('absv','abssv')
+figure(5)
+plot(flux,x)
+xlabel('Flux linkage, Wb')
+ylabel('State variable')
+title('State-flux relation')
+grid
+figure(6)
+plot(t,M)
+xlabel('Time, [s]')
+ylabel('Memristance, Ohm')
+title('Time diagram of memristance')
+grid
+#
+# For citations:
+# 1. Mladenov, V., S. Kirilov. A Simplified Model of
+# Tantalum Oxide Based Memristor and Application in
+# Memory Crossbars., accepted for presentation and
+# publishing in MOCAST 2021, Greece, http://mocast.physics.auth.gr/.
+#
+# 2. L. Chua, "Memristor-The missing circuit element," in IEEE
+# Transactions on Circuit Theory, vol. 18, no. 5, pp. 507-519,
+# September 1971, doi: 10.1109/TCT.1971.1083337.
+#
+# 3. John W. Eaton, David Bateman, Søren Hauberg, Rik Wehbring (2023).
+# GNU Octave version 8.2.0 manual: a high-level interactive language for
+  # numerical computations. URL https://www.gnu.org/software/octave/doc/v8.2.0/
+#
+# 4. Nagar, S.. “Introduction to Octave,” Apress, Berkeley, CA, 2018,
+# https://doi.org/10.1007/978-1-4842-3201-9_1, ISBN 978-1-4842-3201-9, pp. 209.
+#
+# 5. Chapra, S.C., Canale, R.P., “Numerical Methods for Engineers,”
+# McGraw-Hill Education, USA, New York, 2016, ISBN 978–0–07–339792–4, pp. 970.
