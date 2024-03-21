@@ -1,0 +1,87 @@
+# GNU Octave model
+# Ideal memristor model - numerical solution
+# using finite-differences method
+# at pulse mode
+#
+clear # clear the memory
+clc # clear screen
+#
+# analysis in time domain
+tmin=0; # starting time, [s]
+tmax=0.1; # stopping time, [s]
+# sampling in time domain
+N=1e5; # number of samples
+deltat=(tmax-tmin)/N; # time step, [s]
+t=tmin:deltat:tmax; # time variable, [s]
+# voltage signal generation
+vm=1.8; # amplitude, [V]
+f=80; # frequency,[Hz]
+omega=2*pi*f; # angular frequency, [rad/s]
+psiv=0; # initial phase, [Deg]
+pkg load signal
+v=vm*square(omega*t+deg2rad(psiv)); # voltage signal, [V]
+# flux linkage, [Wb]
+for n=1;
+  flux(n)=0;
+end
+for n=2:1:N+1;
+  flux(n)=flux(n-1)+deltat*v(n-1);
+end
+# q0=0.00001;
+# voltage signal as a time derivative of flux
+for n=1:N;
+vv(n)=(flux(n+1)-flux(n))/deltat;
+end
+q=flux.^(3); # charge-flux relation
+# current as a time derivative of charge
+for n=1:N;
+ii(n)=(q(n+1)-q(n))/deltat;
+end
+figure(1)
+plot(t,v,t,flux*100,'r',t,q*1e6,'k')
+xlabel('Time, [s]')
+ylabel('V, Flux, Charge')
+title('Time diagrams of V, Flux and Charge')
+grid
+legend('Voltage','Flux','Charge')
+figure(2)
+plot(flux,q)
+xlabel('Flux linkage, [Wb]')
+ylabel('Charge, [C]')
+title('Charge-Flux relation')
+grid
+figure(3)
+plot(vv,ii)
+xlabel('Voltage, [V]')
+ylabel('Current, [A]')
+title('Current-voltage relationship')
+grid
+#
+# For citation:
+#
+# 1.Biolek, Z., Biolek, D. and Biolkova, V., 2015. Differential equations
+# of ideal memristors. Radioengineering, 24(2), pp.369-377.
+#
+# 2. D. Biolek, Z. Biolek, V. Biolková and Z. Kolka, "Some fingerprints of ideal
+# memristors," 2013 IEEE International Symposium on Circuits and Systems (ISCAS),
+# Beijing, China, 2013, pp. 201-204, doi: 10.1109/ISCAS.2013.6571817.
+#
+# 3. Georgiou, P.S., Barahona, M., Yaliraki, S.N. and Drakakis, E.M., 2014. On memristor
+# ideality and reciprocity. Microelectronics Journal, 45(11), pp.1363-1371.
+#
+# 4. L. Chua, "Memristor-The missing circuit element," in IEEE
+# Transactions on Circuit Theory, vol. 18, no. 5, pp. 507-519,
+# September 1971, doi: 10.1109/TCT.1971.1083337.
+#
+# 5. Strukov, D.B., Snider, G.S., Stewart, D.R. and Williams, R.S.,
+# 2008. The missing memristor found. Nature, vol. 453(7191), pp.80-83.
+#
+# 6. John W. Eaton, David Bateman, Søren Hauberg, Rik Wehbring (2023).
+# GNU Octave version 8.2.0 manual: a high-level interactive language for
+  # numerical computations. URL https://www.gnu.org/software/octave/doc/v8.2.0/
+#
+# 7. Nagar, S.. “Introduction to Octave,” Apress, Berkeley, CA, 2018,
+# https://doi.org/10.1007/978-1-4842-3201-9_1, ISBN 978-1-4842-3201-9, pp. 209.
+#
+# 8. Chapra, S.C., Canale, R.P., “Numerical Methods for Engineers,”
+# McGraw-Hill Education, USA, New York, 2016, ISBN 978–0–07–339792–4, pp. 970.
