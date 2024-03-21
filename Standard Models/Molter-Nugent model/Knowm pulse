@@ -1,0 +1,91 @@
+# GNU Octave model
+# using finite-differences method
+# at sinusoidal mode
+# the standard Knowm memristor model
+# parameters
+clear
+clc
+# parameters
+vt=0.025;
+beta=1/vt;
+tau=0.0001;
+deltat=1e-6;
+alfa=deltat/tau;
+tmin=0;
+tmax=2;
+N=(tmax-tmin)/deltat;
+von=0.27#0.6;
+voff=0.27#0.2;
+ron=15e3;
+roff=45e3;
+x0=0.5;
+# simulation
+vm=0.2;
+f=20;
+omega=2*pi*f;
+psiv=0;
+t=tmin:deltat:tmax;
+pkg load signal
+v=vm*square(omega*t+deg2rad(psiv));
+for n=1;
+    x(n)=x0;
+end
+for n=2:1:N+1;
+    x(n)=x(n-1)+deltat*(1/tau)*((1/(1+exp(-beta*(v(n-1)-von))))*...
+    (1-x(n-1))-(1-(1/(1+exp(-beta*(v(n-1)+voff)))))*x(n-1));
+end
+for n=1;
+    flux(n)=0;
+end
+for n=2:1:N+1;
+    flux(n)=flux(n-1)+deltat*v(n-1);
+end
+ii=v.*((x/ron)+((1-x)/roff));
+# figures
+figure(1)
+plot(t,v)
+xlabel('Time, s')
+ylabel('Voltage, V')
+title('Time diagram of voltage')
+grid
+figure(2)
+plot(t,x)
+xlabel('Time, s')
+ylabel('State variable')
+title('Time diagram of x')
+grid
+figure(3)
+plot(v,ii)
+xlabel('Voltage, V')
+ylabel('Current, A')
+title('Current-voltage relation')
+grid
+figure(4)
+plot(flux,x)
+xlabel('Flux linkage, Wb')
+ylabel('State variable')
+title('State-flux relation')
+grid
+#
+# For citation:
+#
+# 1. Nugent, M.; Molter, T. AHaH Computing-From Metastable Switches
+# to Attractors to Machine Learning. PLoS ONE 2014, 9, e85175.
+#
+# 2. Molter, T.W.; Nugent, M.A. The Generalized Metastable Switch
+# Memristor Model. In Proceedings of the CNNA 2016; 15th
+# International Workshop on Cellular Nanoscale Networks and their
+# Applications, Dresden, Germany, 23-25 August 2016.
+#
+# 3. Campbell, K.A., 2017. “Self-directed channel memristor for
+# high temperature operation,” Microelectronics journal, 59, pp.10-14.
+#
+# 4. John W. Eaton, David Bateman, Søren Hauberg, Rik Wehbring (2023).
+# GNU Octave version 8.2.0 manual: a high-level interactive language for
+  # numerical computations. URL https://www.gnu.org/software/octave/doc/v8.2.0/
+#
+# 4. Nagar, S.. “Introduction to Octave,” Apress, Berkeley, CA, 2018,
+# https://doi.org/10.1007/978-1-4842-3201-9_1, ISBN 978-1-4842-3201-9, pp. 209.
+#
+# 6. Chapra, S.C., Canale, R.P., “Numerical Methods for Engineers,”
+# McGraw-Hill Education, USA, New York, 2016, ISBN 978–0–07–339792–4, pp. 970.
