@@ -1,0 +1,127 @@
+# tantalum oxide standard memristor model K9
+# pulse mode
+# hpos approximation
+clear
+clc
+# voltage signal
+N=1e5;
+tmin=0;
+tmax=2;
+deltat=(tmax-tmin)/N;
+t=tmin:deltat:tmax;
+vm=0.44;
+f=10;
+omega=2*pi*f;
+psiv=0;
+pkg load signal
+v=vm*square(omega*t+deg2rad(psiv));
+# constants nad parameters
+A=1e-10;
+B=1e-4;
+sigmap=4e-5;
+sigmaon=4.5e-1;
+sigmaoff=1.3e-2;
+xoff=4e-1;
+beta=500;
+xon=6e-2;
+Gm=2.5e-2;
+a=7.2e-6;
+b=4.7;
+x0=0.1; # state variable
+k=-100;
+stpplus=(sign(v)+1)/2;
+stpminus=(sign(-v)+1)/2;
+splus=1./(1+exp(k*v));
+sminus=1./(1+exp(-k*v));
+abssv=v.*(splus-sminus);
+absv=abs(v);
+# flux linkage
+for n=1;
+    flux(n)=0;
+end
+for n=2:N+1
+    flux(n)=flux(n-1)+deltat*v(n-1);
+end
+#
+for n=1
+    x(n)=x0;
+    ii(n)=v(n)*(Gm*x(n)+a*exp(b*sqrt(abssv(n)))*(1-x(n)));
+end
+for n=2:N+1;
+    x(n)=x(n-1)+deltat*((A*sinh(v(n-1)/sigmaoff)*exp(-(xoff^2)/(x(n-1)^2))*exp(1/(1+beta*ii(n-1)*v(n-1)))*sminus(n-1))+...
+        (B*sinh(v(n-1)/sigmaon)*exp(-(x(n-1)^2)/(xon^2))*exp((v(n-1)*ii(n-1))/sigmap)*splus(n-1)));
+     ii(n)=v(n)*(Gm*x(n)+a*exp(b*sqrt(abssv(n)))*(1-x(n)));
+end
+#hpos=B*sinh(u/sigmaon).*exp(-(x.^2)/(xon^2)).*exp((u.*ii)/sigmap);
+figure(1)
+plot(t,x,t,v,'m')
+xlabel('Time, s')
+ylabel('State and voltage')
+title('Time diagrams of x and v')
+grid
+legend('State variable','Voltage')
+#
+figure(2)
+plot(v,ii)
+xlabel('Voltage, V')
+ylabel('Current, A')
+title('Current-voltage relation')
+grid
+#
+figure(3)
+subplot(2,1,1)
+plot(v,stpplus,v,stpminus,'r')
+xlabel('Voltage, V')
+ylabel('Heaviside Step functions')
+title('Time diagrams of Heaviside step functions')
+grid
+legend('OFF to ON switching', 'ON to OFF switching')
+#
+subplot(2,1,2)
+plot(v,splus,v,sminus,'r')
+xlabel('Voltage, V')
+ylabel('Step-like sigmoidal functions')
+title('Time diagrams of step-like functions')
+grid
+legend('OFF to ON switching', 'ON to OFF switching')
+#
+figure(4)
+plot(v,absv,v,abssv,'r')
+xlabel('Voltage, V')
+ylabel('Modulus functions of voltage')
+title('Modulus functions')
+grid
+legend('Standard modulus','Modified modulus')
+#
+figure(5)
+plot(flux,x)
+xlabel('Flux linkage, Wb')
+ylabel('State variable x')
+title('State-flux relation')
+grid
+#
+# For citation:
+# 1. Ascoli, A.; Tetzlaff, R.; Chua, L. Robust Simulation of a TaO
+# Memristor Model. Radioengineering 2015, 24, 384-392.
+#
+# 2. L. Chua, "Memristor-The missing circuit element," in IEEE
+# Transactions on Circuit Theory, vol. 18, no. 5, pp. 507-519,
+# September 1971, doi: 10.1109/TCT.1971.1083337.
+#
+# 3. Strukov, D.B., Snider, G.S., Stewart, D.R. and Williams, R.S.,
+# 2008. The missing memristor found. Nature, vol. 453(7191), pp.80-83.
+#
+# 4. F. Corinto and A. Ascoli, "A Boundary Condition-Based Approach
+# to the Modeling of Memristor Nanostructures," in IEEE
+# Transactions on Circuits and Systems I: Regular Papers,
+# vol. 59, no. 11, pp. 2713-2726, Nov. 2012, doi: 10.1109/TCSI.2012.2190563.
+#
+# 5. John W. Eaton, David Bateman, Søren Hauberg, Rik Wehbring (2023).
+# GNU Octave version 8.2.0 manual: a high-level interactive language for
+  # numerical computations. URL https://www.gnu.org/software/octave/doc/v8.2.0/
+#
+# 6. Nagar, S.. “Introduction to Octave,” Apress, Berkeley, CA, 2018,
+# https://doi.org/10.1007/978-1-4842-3201-9_1, ISBN 978-1-4842-3201-9, pp. 209.
+#
+# 7. Chapra, S.C., Canale, R.P., “Numerical Methods for Engineers,”
+# McGraw-Hill Education, USA, New York, 2016, ISBN 978–0–07–339792–4, pp. 970.
