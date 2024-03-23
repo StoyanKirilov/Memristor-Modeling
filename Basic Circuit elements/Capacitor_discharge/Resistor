@@ -1,0 +1,42 @@
+# capacitor discharge through a resistor
+r=1e3 # resistance
+C=100e-6 # capacitance
+vc0=10 # initial voltage of capacitor
+tmin=0
+tmax=1
+N=1000
+deltat=(tmax-tmin)/N
+t=tmin:deltat:tmax;
+# numerical solution
+for n=1
+  vc(n)=vc0
+end
+for n=2:1:N+1;
+  vc(n)=vc(n-1)-deltat*vc(n-1)*(1/(r*C));
+end
+ii=-vc./r;
+# analytical solution
+vcan=vc0*exp(-t/(r*C));
+# power
+p=vc.*ii;
+# error between analytical and numerical solution
+err=((vcan-vc)./vcan)*100; # error in %
+figure(1)
+plot(t,vc,t,vcan,'r',t,ii*100,'k')
+xlabel('Time, [s]')
+ylabel('Capacitor voltage and current')
+title('Time diagrams of vc and ii')
+grid
+legend('vc numerical','vc analytical','current')
+figure(2)
+plot(t,p)
+xlabel('Time, [s]')
+ylabel('Electric power')
+title('Time diagram of power')
+grid
+figure(3)
+plot(t,err)
+xlabel('Time, [s]')
+ylabel('Error between vcan and vc')
+grid
+#
