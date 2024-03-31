@@ -1,0 +1,93 @@
+# memristor model B14 for conference FA 2022
+# modified model
+# sinusoidal mode
+clear
+clc
+# constants
+k1=0.1;
+k2=0.1;
+k3=800;
+k4=1.5;
+x0=0.1;
+vthr=0.2;
+pp=8;
+N=1e5;
+# parameters
+vm=1.4;
+f=800;
+psiv=deg2rad(0);
+#
+tmin=0;
+tmax=0.01;
+deltat=(tmax-tmin)/N;
+t=tmin:deltat:tmax;
+v=vm*sin(2*pi*f*t+psiv);
+# flux linkage
+for n=1;
+    flux(n)=0;
+end
+for n=2:N+1;
+    flux(n)=flux(n-1)+deltat*v(n-1);
+end
+stp=(sign(-v)+1)/2;
+# state variable
+tic
+for n=1;
+    x(n)=x0;
+end
+for n=2:N+1;
+  if abs(v(n-1))<vthr;
+    x(n)=x(n-1);
+    else
+        x(n)=x(n-1)+deltat*k3*(k4*(v(n))^3)*...
+        (1-(x(n-1)-stp(n))^(2*pp));
+        end
+end
+toc
+ii=(k1*(v.^5)+k2*v).*(x.^5);
+fb=1-(x-stp).^(2*pp);
+# figures
+figure(1)
+plot(t,v,t,x,'r',t,ii,'m')
+xlabel('Time, [s]')
+ylabel('V, X and Current')
+title('Time diagrams of v, x, and i')
+grid
+legend('Voltage','state variable','current')
+figure(2)
+plot(v,ii)
+xlabel('Voltage, V')
+ylabel('Current, A')
+title('Current-voltage relation')
+grid
+figure(3)
+plot(flux,x)
+xlabel('Flux linkage, Wb')
+ylabel('State variable')
+title('State-flux relation')
+grid
+figure(4)
+plot(x,fb)
+xlabel('State variable')
+ylabel('Window function')
+title('Window function')
+grid
+#
+# For citation:
+#
+# 1. Zaykov, I., “A modified metal-oxide memristor model for reconfigurable
+# filters”, Proceedings of Technical University of Sofia, ISSN: 2738-8549,
+# 2022, VOL. 72, NO. 2, https://doi.org/10.47978/TUS.2022.72.02.005, pp. 27 – 31.
+#
+# 2. Strukov, D.B., Snider, G.S., Stewart, D.R. and Williams, R.S.,
+# 2008. The missing memristor found. Nature, vol. 453(7191), pp.80-83.
+#
+# 3. John W. Eaton, David Bateman, Søren Hauberg, Rik Wehbring (2023).
+# GNU Octave version 8.2.0 manual: a high-level interactive language for
+  # numerical computations. URL https://www.gnu.org/software/octave/doc/v8.2.0/
+#
+# 4. Nagar, S.. “Introduction to Octave,” Apress, Berkeley, CA, 2018,
+# https://doi.org/10.1007/978-1-4842-3201-9_1, ISBN 978-1-4842-3201-9, pp. 209.
+#
+# 5. Chapra, S.C., Canale, R.P., “Numerical Methods for Engineers,”
+# McGraw-Hill Education, USA, New York, 2016, ISBN 978–0–07–339792–4, pp. 970.
