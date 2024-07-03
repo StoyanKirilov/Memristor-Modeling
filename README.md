@@ -1,6 +1,6 @@
 # Memristor-Modeling
 # Memristor Modeling in GNU Octave
-Here is presented a memristor library containing basic and commonly used standard memristor models and several modified by Prof. DSc. V. Mladenov and Assist. Prof. Dr. S. Kirilov memristor models. 
+Dear Readers, here is presented a memristor library containing basic and commonly used standard memristor models and several modified by Prof. DSc. V. Mladenov and Assist. Prof. Dr. S. Kirilov memristor models. Some examples with educational applications are also proposed.
 The offered models are suitable for simulations of single memristors and simple memristor-based circuits in GNU Octave in the domain. The models could be analyzed and their parameters could be altered by the users, according to different memristor nanostructures. GNU Octave is a user-friendly and free software for simulations and mathematical analyses.
 In near future the suggested memristor library will be enriched by other and new models. 
 # General information
