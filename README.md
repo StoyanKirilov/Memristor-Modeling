@@ -11,5 +11,7 @@ For analysis of memristors and memristor circuits the interested readers have to
 First download the .zip file, unzip it and keep the derived folder. All the considered memristor models will be available in this folder. The readers must previously installed GNU Octave software. Open a given model with GNU Octave and then run it. The results and the respective figures will be derived after a short time.
 # 3. Other circuit elements and memristor-based circuits
 For additional information and comparisons, some commonly used circuit elements and simple circuits are also included.
-# 4. Citation
+# 4. Materials and functions for educational purposes
+For educational purposes and especially for student use, some additional analyses and examples with logic gates simulations and analyses of the basic circuit elements are also included.
+# 5. Citation
 When the interested readers use a given memristor model or simple circuit, please cite the original references shown in the end of the corresponding code.
