@@ -1,1 +1,66 @@
 # Logical Function NOR
+# Logical operators and functions
+# operator NOR
+clear
+clc
+# loading signal package
+pkg load signal
+# defining signals
+# sampling
+N=1e5; # number of samples
+tmin=0; # start simulation
+tmax=3; # stop simulation
+deltat=(tmax-tmin)/N; # time step
+t=tmin:deltat:tmax; # time
+x1=(square(2*pi*2*t)+1)/2; # input signal 1
+x2=(square(2*pi*2*t+deg2rad(-60))+1)/2; # input signal 2
+#
+#y1=~x1;
+#y1=not(x1);
+#y=and(x1,x2);
+#y=x1|x2;
+y=not(or(x1,x2));
+figure(1)
+subplot(3,1,1)
+plot(t,x1)
+axis([-0.1 3.1 -0.1 1.1])
+xlabel('Time, s')
+ylabel('Input')
+title('Input signal')
+grid
+subplot(3,1,2)
+plot(t,x2)
+axis([-0.1 3.1 -0.1 1.1])
+xlabel('Time, s')
+ylabel('Input')
+title('Input signal')
+grid
+subplot(3,1,3)
+plot(t,y)
+axis([-0.1 3.1 -0.1 1.1])
+xlabel('Time, s')
+ylabel('Output')
+title('Output signal')
+grid
+#
+# For citations:
+#
+# 1. Rosen, K.H. and Krithivasan, K., 1999. Discrete mathematics
+# and its applications (Vol. 6). New York: McGraw-Hill.
+#
+# 2. Sarma MS. Introduction to electrical engineering.
+# New York: Oxford University Press; 2001. ISBN 0-19-513604-7, pp. 869.
+#
+# 3. Brandiski, K.G., Georgiev, Zh.D., Mladenov, V.M., Stancheva, R.D.,
+# Textbook on Theory of Electrical Engineering - Part I, KING Publishing House,
+# ISBN 954-9518-28-0, Sofia (In Bulgarian).
+#
+# 4. John W. Eaton, David Bateman, Søren Hauberg, Rik Wehbring (2023).
+# GNU Octave version 8.2.0 manual: a high-level interactive language for
+# numerical computations.
+# URL https://www.gnu.org/software/octave/doc/v8.2.0/
+#
+# 5. Nagar, S. (2018). Introduction to Octave. Apress, Berkeley,
+# CA. https://doi.org/10.1007/978-1-4842-3201-9_1,
+# ISBN 978-1-4842-3201-9, pp. 209.
+#
