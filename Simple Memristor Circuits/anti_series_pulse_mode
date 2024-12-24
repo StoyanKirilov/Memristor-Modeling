@@ -1,0 +1,234 @@
+# anti-series memristor circuit (anode1-cathode1-cathode2-anode2)
+# with two equivalent memristors - analysis
+# supplied by a pulse voltage signal
+# using Strukov-Williams model
+clear
+clc
+#
+tmin=0; # start simulation
+tmax=1; # stop simulation
+N=5e5; # number of samples
+deltat=(tmax-tmin)/N; # time step
+t=tmin:deltat:tmax; # time variable
+f=7; # frequency of the signal
+omega=2*pi*f; # circular frequency
+psiv=0; # initial phase of the voltage
+vm=1;
+pkg load signal
+vprim=vm*square(omega*t+deg2rad(psiv));
+# filtering the signal
+fs=1/deltat; # sampling frequency
+fcut=50; # cutoff frequency
+order=1; # oorder of the applied filter
+[a, b] = butter(order,fcut/(fs/2));
+# filtering
+v = filtfilt(a, b, vprim);
+#plot(t,vprim,t,v,'r')
+#
+eta1=1; # polarity coefficient  for memristor 1
+eta2=-1; # polarity coefficient for memristor 2
+x01=0.5; # state variable of M1
+x02=0.5; # state variable of M2
+ron=100; # on-state resistance
+roff=16e3; # off-state resistance
+k=5e4; # physical constant
+p=10; # positive integer exponent
+stpp=1./(1+exp(500*v)); # step function of Heaviside using (-v)
+# plot(v,stpp)
+# initial conditions for M1 and M2
+tic
+for n=1; # t=0
+    x1(n)=x01;
+    x2(n)=x02;
+    m1(n)=ron*x1(n)+roff*(1-x1(n));
+    m2(n)=ron*x2(n)+roff*(1-x2(n));
+    ii(n)=v(n)/(m1(n)+m2(n)); # current
+    v1(n)=v(n)-(ii(n)*m2(n)); # voltage across M1
+    v2(n)=(ii(n)*m2(n)); # voltage across M2
+end
+# recursion
+for n=2:1:N+1;
+    x1(n)=x1(n-1)+deltat*k*eta1*(v(n-1)/((ron*x1(n-1)+roff*(1-x1(n-1)))+(ron*x2(n-1)+roff*(1-x2(n-1)))))*...
+    (1-(x1(n-1)-stpp(n-1))^(2*p));
+    x2(n)=x2(n-1)+deltat*k*eta2*(v(n-1)/((ron*x1(n-1)+roff*(1-x1(n-1)))+(ron*x2(n-1)+roff*(1-x2(n-1)))))*...
+    (1-(x2(n-1)-stpp(n-1))^(2*p));
+    m1(n)=ron*x1(n)+roff*(1-x1(n));
+    m2(n)=ron*x2(n)+roff*(1-x2(n));
+    ii(n)=v(n)/(m1(n)+m2(n));
+    v1(n)=v(n)-(ii(n)*m2(n));
+    v2(n)=(ii(n)*m2(n));
+end
+toc
+fb1=1-(x1-stpp).^(2*p);
+fb2=1-(x2-stpp).^(2*p);
+# flux1
+for n=1;
+    flux1(n)=0;
+end
+for n=2:1:N+1;
+    flux1(n)=flux1(n-1)+deltat*v1(n-1);
+end
+# flux 2
+for n=1;
+    flux2(n)=0;
+end
+for n=2:1:N+1;
+    flux2(n)=flux2(n-1)+deltat*v2(n-1);
+end
+# flux
+for n=1;
+    flux(n)=0;
+end
+for n=2:1:N+1;
+    flux(n)=flux(n-1)+deltat*v(n-1);
+end
+# charges of M1 and M2
+charge1=(1/k)*x1;
+charge2=(1/k)*x2;
+#
+# total memristance
+M=m1+m2;
+#
+figure(1)
+plot(t,v1,t,v2,'r',t,ii*1e3,'k')
+xlabel('Time, [s]')
+ylabel('Voltages, Current')
+title('Time diagrams of v1, v2, ii')
+legend('v1','v2','current')
+grid
+legend('v1','v2','current')
+figure(2)
+plot(t,x1,t,x2,'r')
+xlabel('Time, [s]')
+ylabel('State variables')
+title('Time diagrams of x1 and x2')
+grid
+legend('x1','x2')
+#
+figure(3)
+subplot(2,1,1)
+plot(v1,ii)
+xlabel('Voltage v1')
+ylabel('Current')
+title('v1-ii relation')
+grid
+legend('i-v of memristor M1')
+subplot(2,1,2)
+plot(v2,ii)
+xlabel('Voltage v2')
+ylabel('Current ii')
+title('v2-ii relation')
+grid
+legend('i-v of memristor M2')
+figure(4)
+subplot(2,1,1)
+plot(flux1,x1)
+xlabel('Flux 1, Wb')
+ylabel('State x1')
+title('State-flux relation 1')
+legend('M1')
+grid
+subplot(2,1,2)
+plot(flux2,x2)
+xlabel('Flux 2, Wb')
+ylabel('State x2')
+title('State-flux relation 2')
+grid
+legend('M2')
+figure(5)
+plot(v,ii)
+xlabel('Voltage v, [V]')
+ylabel('Current, [A]')
+title('I-V of the complete circuit')
+grid
+legend('i-v of whole circuit')
+figure(6)
+plot(flux,M)
+xlabel('Flux linkage, Wb')
+ylabel('Total Memristance, Ohm')
+title('Memristance-flux relation')
+grid
+#
+figure(7)
+plot(flux1,m1)
+xlabel('Flux of M1, Wb')
+ylabel('Memristance of M1')
+title('Memristance -flux relation of M1')
+grid
+#
+figure(8)
+plot(flux2,m2)
+xlabel('Flux of M2, Wb')
+ylabel('Memristance of M2')
+title('Memristance -flux relation of M2')
+grid
+figure(9)
+plot(x1,fb1)
+xlabel('State variable x1')
+ylabel('Biolek window 1')
+title('Biolek window function 1')
+grid
+figure(10)
+plot(x2,fb2)
+xlabel('State variable x2')
+ylabel('Biolek window 2')
+title('Biolek window function')
+grid
+figure(11)
+subplot(3,1,1)
+plot(t,v)
+xlabel('Time, s')
+ylabel('Input voltage, V')
+title('Time diagram of input voltage')
+grid
+subplot(3,1,2)
+plot(t,v1)
+xlabel('Time, s')
+ylabel('Voltage across M1, V')
+title('Time diagram of voltage across M1')
+grid
+subplot(3,1,3)
+plot(t,v2)
+xlabel('Time, s')
+ylabel('Voltage across M2, V')
+title('Time diagram of voltage across M2')
+grid
+figure(12)
+plot(v,stpp)
+xlabel('Voltage, V')
+ylabel('stpp')
+title('modified step function')
+grid
+#
+# For citation:
+#
+# 1. L. Chua, "Memristor-The missing circuit element," in IEEE
+# Transactions on Circuit Theory, vol. 18, no. 5, pp. 507-519,
+# September 1971, doi: 10.1109/TCT.1971.1083337.
+#
+# 2. Strukov, D.B., Snider, G.S., Stewart, D.R. and Williams, R.S.,
+# 2008. The missing memristor found. Nature, vol. 453(7191), pp.80-83.
+#
+# 3. F. Corinto and A. Ascoli, "A Boundary Condition-Based Approach
+# to the Modeling of Memristor Nanostructures," in IEEE
+# Transactions on Circuits and Systems I: Regular Papers,
+# vol. 59, no. 11, pp. 2713-2726, Nov. 2012, doi: 10.1109/TCSI.2012.2190563.
+#
+# 3. John W. Eaton, David Bateman, Søren Hauberg, Rik Wehbring (2023).
+# GNU Octave version 8.2.0 manual: a high-level interactive language for
+  # numerical computations. URL https://www.gnu.org/software/octave/doc/v8.2.0/
+#
+# 4. Nagar, S.. “Introduction to Octave,” Apress, Berkeley, CA, 2018,
+# https://doi.org/10.1007/978-1-4842-3201-9_1, ISBN 978-1-4842-3201-9, pp. 209.
+#
+# 5. Chapra, S.C., Canale, R.P., “Numerical Methods for Engineers,”
+# McGraw-Hill Education, USA, New York, 2016, ISBN 978–0–07–339792–4, pp. 970.
+#
+# 6. Mladenov, V. and Kirilov, S., 2018. Analysis of an anti-parallel memristor
+# circuit. Informatyka, Automatyka, Pomiary w Gospodarce i
+# Ochronie Środowiska, 8(2), pp.9-14. DOI: 10.5604/01.3001.0012.0696
+#
+# 7. Mladenov, V.M. and Kirilov, S.M., 2012, August. Analysis of a serial circuit
+# with two Memristors and voltage source at sine and impulse regime.
+# In 2012 13th International Workshop on Cellular Nanoscale Networks
+# and their Applications (pp. 1-6). IEEE.DOI: 10.1109/CNNA.2012.6331476
