@@ -1,1 +1,186 @@
 # Anti-parallel connection - analysis
+# anti-parallel memristor circuit (anode1-cathode1-cathode2-anode2)
+# with two equivalent memristors - analysis
+# supplied by a current source signal
+# at sinusoidal mode and using Strukov-Williams memristor model
+clear
+clc
+#
+tmin=0; # start simulation
+tmax=1; # stop simulation
+N=1e5; # number of samples
+deltat=(tmax-tmin)/N; # time step
+t=tmin:deltat:tmax; # time variable
+f=6; # frequency of the signal
+omega=2*pi*f; # circular frequency
+psijj=0; # initial phase of the voltage
+jjm=1e-3; % amplitude of the current source
+jj=jjm*sin(omega*t+deg2rad(psijj)); % current source signal
+eta1=1; # polarity coefficient  for memristor 1
+eta2=-1; # polarity coefficient for memristor 2
+x01=0.5; # state variable of M1
+x02=0.5; # state variable of M2
+ron=100; # on-state resistance
+roff=16e3; # off-state resistance
+k=10e4; # physical constant
+# initial conditions for M1 and M2
+tic
+for n=1; # t=0
+    x1(n)=x01;
+    x2(n)=x02;
+    m1(n)=ron*x1(n)+roff*(1-x1(n));
+    m2(n)=ron*x2(n)+roff*(1-x2(n));
+    m(n)=(m1(n)*m2(n))/(m1(n)+m2(n));
+    v(n)=jj(n)*m(n);
+    i1(n)=v(n)/m1(n);
+    i2(n)=v(n)/m2(n);
+end
+# recursion
+for n=2:1:N+1;
+    x1(n)=x1(n-1)+deltat*k*eta1*...
+    (jj(n-1)*(ron*x2(n-1)+roff*(1-x2(n-1)))/((ron*x1(n-1)+roff*(1-x1(n-1)))+...
+    (ron*x2(n-1)+roff*(1-x2(n-1)))))*...
+    (x1(n-1)*(1-x1(n-1)));
+    %
+    x2(n)=x2(n-1)+deltat*k*eta2*...
+    (jj(n-1)*(ron*x1(n-1)+roff*(1-x1(n-1)))/((ron*x1(n-1)+roff*(1-x1(n-1)))+...
+    (ron*x2(n-1)+roff*(1-x2(n-1)))))*...
+    (x2(n-1)*(1-x2(n-1)));
+    %
+    m1(n)=ron*x1(n)+roff*(1-x1(n));
+    m2(n)=ron*x2(n)+roff*(1-x2(n));
+    m(n)=(m1(n)*m2(n))/(m1(n)+m2(n));
+    %
+    v(n)=jj(n)*m(n);
+    i1(n)=v(n)/m1(n);
+    i2(n)=v(n)/m2(n);
+    %
+    end
+toc
+# flux
+for n=1;
+    flux(n)=0;
+end
+for n=2:1:N+1;
+    flux(n)=flux(n-1)+deltat*v(n-1);
+end
+# charges of M1 and M2
+charge1=(1/k)*x1;
+charge2=(1/k)*x2;
+#
+# total memristance
+M=(m1.*m2)./(m1+m2);
+#
+figure(1)
+plot(t,i1,t,i2,'r',t,jj,'k')
+xlabel('Time, [s]')
+ylabel('Currents i1, i2 and jj')
+title('Time diagrams of i1, i2, jj')
+legend('i1','i2','jj')
+grid
+%
+figure(2)
+plot(t,x1,t,x2,'r')
+xlabel('Time, [s]')
+ylabel('State variables')
+title('Time diagrams of x1 and x2')
+grid
+legend('x1','x2')
+#
+figure(3)
+subplot(2,1,1)
+plot(v,i1)
+xlabel('Voltage v1')
+ylabel('Current')
+title('v-i1 relation')
+grid
+legend('i-v of memristor M1')
+subplot(2,1,2)
+plot(v,i2)
+xlabel('Voltage v')
+ylabel('Current i2')
+title('v-i2 relation')
+grid
+legend('i-v of memristor M2')
+%
+figure(4)
+subplot(2,1,1)
+plot(flux,x1)
+xlabel('Flux, Wb')
+ylabel('State x1')
+title('State-flux relation 1')
+legend('state-flux relation of M1')
+grid
+subplot(2,1,2)
+plot(flux,x2)
+xlabel('Flux, Wb')
+ylabel('State x2')
+title('State-flux relation of M2')
+grid
+legend('state-flux relation of M2')
+%
+figure(5)
+plot(v,jj)
+xlabel('Voltage v, [V]')
+ylabel('Current jj, [A]')
+title('I-V of the complete circuit')
+grid
+legend('i-v of whole circuit')
+%
+figure(6)
+subplot(3,1,1)
+plot(flux,M)
+xlabel('Flux linkage, Wb')
+ylabel('Total Memristance, Ohm')
+title('Memristance-flux relation')
+grid
+legend('total memristance')
+#
+subplot(3,1,2)
+plot(flux,m1)
+xlabel('Flux, Wb')
+ylabel('Memristance of M1')
+title('Memristance -flux relation of M1')
+grid
+legend('Memristance M1')
+#
+subplot(3,1,3)
+plot(flux,m2)
+xlabel('Flux, Wb')
+ylabel('Memristance of M2')
+title('Memristance -flux relation of M2')
+grid
+legend('Memristance M2')
+#
+# For citation:
+#
+# 1. L. Chua, "Memristor-The missing circuit element," in IEEE
+# Transactions on Circuit Theory, vol. 18, no. 5, pp. 507-519,
+# September 1971, doi: 10.1109/TCT.1971.1083337.
+#
+# 2. Strukov, D.B., Snider, G.S., Stewart, D.R. and Williams, R.S.,
+# 2008. The missing memristor found. Nature, vol. 453(7191), pp.80-83.
+#
+# 3. F. Corinto and A. Ascoli, "A Boundary Condition-Based Approach
+# to the Modeling of Memristor Nanostructures," in IEEE
+# Transactions on Circuits and Systems I: Regular Papers,
+# vol. 59, no. 11, pp. 2713-2726, Nov. 2012, doi: 10.1109/TCSI.2012.2190563.
+#
+# 3. John W. Eaton, David Bateman, Søren Hauberg, Rik Wehbring (2023).
+# GNU Octave version 8.2.0 manual: a high-level interactive language for
+  # numerical computations. URL https://www.gnu.org/software/octave/doc/v8.2.0/
+#
+# 4. Nagar, S.. “Introduction to Octave,” Apress, Berkeley, CA, 2018,
+# https://doi.org/10.1007/978-1-4842-3201-9_1, ISBN 978-1-4842-3201-9, pp. 209.
+#
+# 5. Chapra, S.C., Canale, R.P., “Numerical Methods for Engineers,”
+# McGraw-Hill Education, USA, New York, 2016, ISBN 978–0–07–339792–4, pp. 970.
+#
+# 6. Mladenov, V. and Kirilov, S., 2018. Analysis of an anti-parallel memristor
+# circuit. Informatyka, Automatyka, Pomiary w Gospodarce i
+# Ochronie Środowiska, 8(2), pp.9-14. DOI: 10.5604/01.3001.0012.0696
+#
+# 7. Mladenov, V.M. and Kirilov, S.M., 2012, August. Analysis of a serial circuit
+# with two Memristors and voltage source at sine and impulse regime.
+# In 2012 13th International Workshop on Cellular Nanoscale Networks
+# and their Applications (pp. 1-6). IEEE. DOI: 10.1109/CNNA.2012.6331476
