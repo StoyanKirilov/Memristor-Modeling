@@ -1,1 +1,76 @@
 # capacitor discharge SW memristor model
+# SW model - Capacitor discharge analysis
+# for ICARAI 2024 Conference, Sozopol, Bulgaria
+clear
+clc
+# memristor model for MOCAST 2024
+# parameters
+eta=1; # polarity coefficient
+vc0=-2.5; # capacitor initial voltage
+c=100e-6; # capacitance
+N=1e5;
+tmin=0;
+tmax=2;
+deltat=(tmax-tmin)/N;
+t=tmin:deltat:tmax;
+ron=100;
+roff=16e3;
+x0=0.01;
+k=40000;
+# state variable
+tic
+for n=1
+  vc(n)=vc0;
+  vmemr(n)=-vc(n);
+  x(n)=x0;
+  imemr(n)=(vmemr(n))/(ron*x(n)+roff*(1-x(n)));
+end
+for n=2:1:N+1;
+  x(n)=x(n-1)+deltat*k*(vmemr(n-1)/(ron*x(n-1)+roff*(1-x(n-1))))*...
+  (x(n-1)*(1-x(n-1)));
+  imemr(n)=vmemr(n-1)/(ron*x(n)+roff*(1-x(n)));
+  vc(n)=vc(n-1)+deltat*(1/c)*imemr(n);
+  vmemr(n)=-vc(n);
+end
+toc
+# flux linkage
+for n=1;
+  flux(n)=0;
+end
+for n=2:N+1;
+  flux(n)=flux(n-1)+deltat*vmemr(n-1);
+end
+figure(1)
+#subplot(2,1,1)
+plot(t,vmemr,t,x,'m',t,imemr*1000)
+xlabel('Time, [s]')
+ylabel('V, x and imemr')
+title('Time diagrams of V, x and current')
+grid
+legend('Voltage','State variable','Current')
+#
+# For citation:
+#
+# 1. Kirilov, S. “Octave Memristor Models’ Library
+# and Application for Analysis of Memristors and
+# Memristor-Based Circuits,” submitted for
+# presentation and publishing in International Conf.
+# ICARAI 2024 (Sozopol Bulgaria)
+# https://e-university.tu-sofia.bg/e-conf/index.php?konf=214.
+#
+# 2. John W. Eaton, David Bateman, Søren Hauberg, Rik Wehbring (2023).
+# GNU Octave version 8.2.0 manual: a high-level interactive language for
+  # numerical computations. URL https://www.gnu.org/software/octave/doc/v8.2.0/
+#
+# 3. Nagar, S.. “Introduction to Octave,” Apress, Berkeley, CA, 2018,
+# https://doi.org/10.1007/978-1-4842-3201-9_1, ISBN 978-1-4842-3201-9, pp. 209.
+#
+# 4. Chapra, S.C., Canale, R.P., “Numerical Methods for Engineers,”
+# McGraw-Hill Education, USA, New York, 2016, ISBN 978–0–07–339792–4, pp. 970.
+#
+# 5. L. Chua, "Memristor-The missing circuit element," in IEEE
+# Transactions on Circuit Theory, vol. 18, no. 5, pp. 507-519,
+# September 1971, doi: 10.1109/TCT.1971.1083337.
+#
+# 6. Strukov, D.B., Snider, G.S., Stewart, D.R. and Williams, R.S.,
+# 2008. The missing memristor found. Nature, vol. 453(7191), pp.80-83.
