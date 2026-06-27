@@ -74,3 +74,8 @@ legend('Voltage','State variable','Current')
 #
 # 6. Strukov, D.B., Snider, G.S., Stewart, D.R. and Williams, R.S.,
 # 2008. The missing memristor found. Nature, vol. 453(7191), pp.80-83.
+#
+# 7. Kirilov, S., "Octave Memristor Models’ Library and Application for Analysis of 
+# Memristors and Memristor-Based Circuits," Proceedings of the Technical University
+# of Sofia, Bulgaria, ISSN: 2738-8549, 2738-8530, Vol. 74, No. 2, 2024, pp. 1-6
+# https://doi.org/10.47978/TUS.2024.74.02.004
