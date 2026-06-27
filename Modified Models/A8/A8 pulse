@@ -207,3 +207,8 @@ legend('Numerical solution')
 #
 # 7. Chapra, S.C., Canale, R.P., “Numerical Methods for Engineers,”
 # McGraw-Hill Education, USA, New York, 2016, ISBN 978–0–07–339792–4, pp. 970.
+#
+# 8. Kirilov, S., "Octave Memristor Models’ Library and Application for Analysis of 
+# Memristors and Memristor-Based Circuits," Proceedings of the Technical University
+# of Sofia, Bulgaria, ISSN: 2738-8549, 2738-8530, Vol. 74, No. 2, 2024, pp. 1-6
+# https://doi.org/10.47978/TUS.2024.74.02.004
