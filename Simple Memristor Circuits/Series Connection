@@ -179,3 +179,8 @@ grid
 # with two Memristors and voltage source at sine and impulse regime.
 # In 2012 13th International Workshop on Cellular Nanoscale Networks
 # and their Applications (pp. 1-6). IEEE.DOI: 10.1109/CNNA.2012.6331476
+#
+# 8. Kirilov, S., "Octave Memristor Models’ Library and Application for Analysis of 
+# Memristors and Memristor-Based Circuits," Proceedings of the Technical University
+# of Sofia, Bulgaria, ISSN: 2738-8549, 2738-8530, Vol. 74, No. 2, 2024, pp. 1-6
+# https://doi.org/10.47978/TUS.2024.74.02.004
