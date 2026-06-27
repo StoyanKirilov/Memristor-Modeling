@@ -198,3 +198,7 @@ ylabel('Amplitude');
   # numerical computations.
   # URL https://www.gnu.org/software/octave/doc/v8.2.0/
   #
+# 5. Kirilov, S., "Octave Memristor Models’ Library and Application for Analysis of 
+# Memristors and Memristor-Based Circuits," Proceedings of the Technical University
+# of Sofia, Bulgaria, ISSN: 2738-8549, 2738-8530, Vol. 74, No. 2, 2024, pp. 1-6
+# https://doi.org/10.47978/TUS.2024.74.02.004
