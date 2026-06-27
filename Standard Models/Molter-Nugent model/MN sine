@@ -83,8 +83,13 @@ grid
 # GNU Octave version 8.2.0 manual: a high-level interactive language for
   # numerical computations. URL https://www.gnu.org/software/octave/doc/v8.2.0/
 #
-# 4. Nagar, S.. “Introduction to Octave,” Apress, Berkeley, CA, 2018,
+# 5. Nagar, S.. “Introduction to Octave,” Apress, Berkeley, CA, 2018,
 # https://doi.org/10.1007/978-1-4842-3201-9_1, ISBN 978-1-4842-3201-9, pp. 209.
 #
 # 6. Chapra, S.C., Canale, R.P., “Numerical Methods for Engineers,”
 # McGraw-Hill Education, USA, New York, 2016, ISBN 978–0–07–339792–4, pp. 970.
+#
+# 7. Kirilov, S., "Octave Memristor Models’ Library and Application for Analysis of 
+# Memristors and Memristor-Based Circuits," Proceedings of the Technical University
+# of Sofia, Bulgaria, ISSN: 2738-8549, 2738-8530, Vol. 74, No. 2, 2024, pp. 1-6
+# https://doi.org/10.47978/TUS.2024.74.02.004
